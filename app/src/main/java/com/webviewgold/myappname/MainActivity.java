@@ -263,6 +263,8 @@ import com.zkteco.android.biometric.module.fingerprintreader.FingerprintSensor;
 import com.zkteco.android.biometric.module.fingerprintreader.FingerprintCaptureListener;
 import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService;
 import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException;
+import com.zkteco.android.biometric.core.utils.ToolUtils
+
 
 import androidx.core.content.ContextCompat;
 
@@ -6359,8 +6361,17 @@ public class MainActivity extends AppCompatActivity
                         int len = ZKFingerService.getTemplateLength(fpTemplate);
                         Log.d(TAG, "extractOK: tmplLen=" + len + " quality=" + q);
                     }
-                    // TODO: hand the template to your JS bridge or native logic
-                    // String b64 = Base64.encodeToString(fpTemplate, Base64.NO_WRAP);
+
+                    String strBase64 = Base64.encodeToString(
+                            fpTemplate,
+                            0,
+                            fingerprintSensor.lastTempLen,
+                            Base64.NO_WRAP
+                    );
+
+                    String imageBase64 = convertToBase64Image()
+
+                    webView.loadUrl("javascript:AjoibotFinger('" + strBase64 + "','" + b64 + "')");
                 }
 
                 @Override
@@ -6379,6 +6390,24 @@ public class MainActivity extends AppCompatActivity
             zkCapturing = false;
             if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "ZK start failed: " + e.getMessage());
         }
+    }
+
+    private String convertToBase64Image(byte[] fpImage) {
+        int width = fingerprintSensor.getImageWidth();
+        int height = fingerprintSensor.getImageHeight();
+
+        if (fpImage != null) {
+            ToolUtils.outputHexString(fpImage);
+
+            Bitmap bitmapFp = ToolUtils.renderCroppedGreyScaleBitmap(fpImage, width, height);
+
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            bitmapFp.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+            byte[] byteArray = byteArrayOutputStream.toByteArray();
+            return Base64.encodeToString(byteArray, Base64.DEFAULT);
+        }
+
+        return null;
     }
 
     private void stopZkSensorCapture() {
