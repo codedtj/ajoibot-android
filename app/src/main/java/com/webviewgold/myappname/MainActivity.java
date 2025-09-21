@@ -256,6 +256,14 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import com.zkteco.android.biometric.core.device.ParameterHelper;
+import com.zkteco.android.biometric.core.device.TransportType;
+import com.zkteco.android.biometric.module.fingerprintreader.FingprintFactory;
+import com.zkteco.android.biometric.module.fingerprintreader.FingerprintSensor;
+import com.zkteco.android.biometric.module.fingerprintreader.FingerprintCaptureListener;
+import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService;
+import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException;
+
 import androidx.core.content.ContextCompat;
 
 public class MainActivity extends AppCompatActivity
@@ -376,19 +384,24 @@ public class MainActivity extends AppCompatActivity
     private BroadcastReceiver usbPermissionReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             if (intent == null) return;
-            String action = intent.getAction();
-            if (ACTION_USB_PERMISSION.equals(action)) {
+            if (ACTION_USB_PERMISSION.equals(intent.getAction())) {
                 UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                 boolean granted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false);
                 if (granted && device != null) {
                     if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "USB permission granted for " + device.getDeviceName());
-                    // TODO: init/open ZKTeco SDK with this device
+                    startZkSensorCapture();
                 } else {
                     if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "USB permission denied.");
                 }
             }
         }
     };
+
+    private static final int ZK_VID = 6997;
+    private static final int ZK_PID = 288;
+
+    private FingerprintSensor zkSensor = null;
+    private boolean zkCapturing = false;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -1091,17 +1104,28 @@ public class MainActivity extends AppCompatActivity
 
         //USB permissions
         usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-        // Listen for permission result
-        IntentFilter usbPermFilter = new IntentFilter(ACTION_USB_PERMISSION);
+
+        IntentFilter permFilter = new IntentFilter(ACTION_USB_PERMISSION);
         ContextCompat.registerReceiver(
                 this,
                 usbPermissionReceiver,
-                usbPermFilter,
+                permFilter,
                 ContextCompat.RECEIVER_NOT_EXPORTED
         );
 
-        // Kick off check (call this when appropriate, e.g., after WebView loads or on a button)
-        ensureUsbPermission();
+        BroadcastReceiver attachReceiver = new BroadcastReceiver() {
+            @Override public void onReceive(Context context, Intent intent) {
+                if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())) {
+                    UsbDevice dev = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                    if (dev != null && dev.getVendorId() == ZK_VID) {
+                        if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "ZK device attached: " + dev.getDeviceName());
+                        ensureUsbPermissionFor(dev);
+                    }
+                }
+            }
+        };
+        IntentFilter attachFilter = new IntentFilter(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+        ContextCompat.registerReceiver(this, attachReceiver, attachFilter, ContextCompat.RECEIVER_EXPORTED);
     }
 
     private long lastScreenshotTime = 0;
@@ -2658,6 +2682,9 @@ public class MainActivity extends AppCompatActivity
 
         //USB permissions
         unregisterReceiver(usbPermissionReceiver);
+
+        stopZkSensorCapture();
+        destroyZkSensor();
 
         super.onDestroy();
         // Launcher-specific / Android 14-specific Improvement: Check if the application is still active and close again if not
@@ -6240,27 +6267,6 @@ public class MainActivity extends AppCompatActivity
         startActivity(i);
     }
 
-    private void ensureUsbPermission() {
-        if (usbManager == null) return;
-        HashMap<String, UsbDevice> map = usbManager.getDeviceList();
-        for (UsbDevice dev : map.values()) {
-            // TODO: match your real device IDs
-            if (dev.getVendorId() == 0x1B55 /* && dev.getProductId() == 0xXXXX */) {
-                if (!usbManager.hasPermission(dev)) {
-                    Intent permIntent = new Intent(ACTION_USB_PERMISSION).setPackage(getPackageName());
-                    PendingIntent pi = PendingIntent.getBroadcast(
-                            this, 0, permIntent, PendingIntent.FLAG_IMMUTABLE);
-                    usbManager.requestPermission(dev, pi);
-                    if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "Requested USB permission for " + dev.getDeviceName());
-                } else {
-                    if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "Already have USB permission for " + dev.getDeviceName());
-                    // TODO: open/init ZKTeco SDK here if you want immediate open
-                }
-                break;
-            }
-        }
-    }
-
     private void requestMediaAndCameraIfNeeded() {
         List<String> toRequest = new ArrayList<>();
 
@@ -6299,6 +6305,94 @@ public class MainActivity extends AppCompatActivity
                 openFilePicker(fileChooserParams);
             }
         }
+    }
+
+    private void ensureUsbPermissionFor(UsbDevice device) {
+        if (device == null || usbManager == null) return;
+        if (!usbManager.hasPermission(device)) {
+            Intent permIntent = new Intent(ACTION_USB_PERMISSION).setPackage(getPackageName());
+            PendingIntent pi = PendingIntent.getBroadcast(this, 0, permIntent, PendingIntent.FLAG_IMMUTABLE);
+            usbManager.requestPermission(device, pi);
+            if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "Requested USB permission for " + device.getDeviceName());
+        } else {
+            startZkSensorCapture();
+        }
+    }
+
+    private void startZkSensorCapture() {
+        if (zkCapturing) {
+            if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "ZK capture already running");
+            return;
+        }
+        try {
+            // Build params for USB
+            java.util.Map<String, Object> params = new java.util.HashMap<>();
+            params.put(ParameterHelper.PARAM_KEY_VID, ZK_VID);
+            params.put(ParameterHelper.PARAM_KEY_PID, ZK_PID);
+
+            // Create sensor for USB transport
+            zkSensor = FingprintFactory.createFingerprintSensor(this, TransportType.USB, params);
+
+            // Listener: image & template callbacks
+            FingerprintCaptureListener listener = new FingerprintCaptureListener() {
+                @Override
+                public void captureOK(final byte[] fpImage) {
+                    if (BuildConfig.IS_DEBUG_MODE) {
+                        Log.d(TAG, "captureOK: img=" + (fpImage == null ? 0 : fpImage.length) +
+                                " w=" + zkSensor.getImageWidth() + " h=" + zkSensor.getImageHeight());
+                    }
+                    // Optionally render image with ToolUtils if you included it; else keep it headless.
+                }
+
+                @Override
+                public void captureError(FingerprintException e) {
+                    if (BuildConfig.IS_DEBUG_MODE) {
+                        Log.d(TAG, "captureError errno=" + e.getErrorCode() +
+                                " inner=" + e.getInternalErrorCode() + " msg=" + e.getMessage());
+                    }
+                }
+
+                @Override
+                public void extractOK(final byte[] fpTemplate) {
+                    if (BuildConfig.IS_DEBUG_MODE) {
+                        int q = ZKFingerService.getTemplateQuality(fpTemplate);
+                        int len = ZKFingerService.getTemplateLength(fpTemplate);
+                        Log.d(TAG, "extractOK: tmplLen=" + len + " quality=" + q);
+                    }
+                    // TODO: hand the template to your JS bridge or native logic
+                    // String b64 = Base64.encodeToString(fpTemplate, Base64.NO_WRAP);
+                }
+
+                @Override
+                public void extractError(int errno) {
+                    if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "extractError code=" + errno);
+                }
+            };
+
+            // Open and start capture (index 0 since you typically have one device)
+            zkSensor.open(0);                                                // connect device
+            zkSensor.setFingerprintCaptureListener(0, listener);             // set callbacks
+            zkSensor.startCapture(0);                                        // start
+            zkCapturing = true;
+            if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "ZK capture started");
+        } catch (Throwable e) {
+            zkCapturing = false;
+            if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "ZK start failed: " + e.getMessage());
+        }
+    }
+
+    private void stopZkSensorCapture() {
+        if (!zkCapturing || zkSensor == null) return;
+        try { zkSensor.stopCapture(0); } catch (Throwable ignore) {}
+        try { zkSensor.close(0); }       catch (Throwable ignore) {}
+        zkCapturing = false;
+        if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "ZK capture stopped");
+    }
+
+    private void destroyZkSensor() {
+        if (zkSensor == null) return;
+        try { zkSensor.destroy(); } catch (Throwable ignore) {}
+        zkSensor = null;
     }
 
 }
