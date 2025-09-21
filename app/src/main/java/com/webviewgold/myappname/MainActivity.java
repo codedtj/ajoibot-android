@@ -65,6 +65,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
 import android.location.LocationManager;
 import android.media.RingtoneManager;
 import android.net.ConnectivityManager;
@@ -254,6 +256,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import androidx.core.content.ContextCompat;
+
 public class MainActivity extends AppCompatActivity
         implements IPermissionObserver,
         PurchasesUpdatedListener {
@@ -363,6 +367,28 @@ public class MainActivity extends AppCompatActivity
         LIGHT,
         HEAVY
     }
+
+    private WebChromeClient.FileChooserParams fileChooserParams;
+
+    //USB permissions
+    private static final String ACTION_USB_PERMISSION = "com.webviewgold.myappname.USB_PERMISSION";
+    private UsbManager usbManager;
+    private BroadcastReceiver usbPermissionReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (intent == null) return;
+            String action = intent.getAction();
+            if (ACTION_USB_PERMISSION.equals(action)) {
+                UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                boolean granted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false);
+                if (granted && device != null) {
+                    if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "USB permission granted for " + device.getDeviceName());
+                    // TODO: init/open ZKTeco SDK with this device
+                } else {
+                    if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "USB permission denied.");
+                }
+            }
+        }
+    };
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -1063,6 +1089,19 @@ public class MainActivity extends AppCompatActivity
 
         handleSharedIntent(getIntent());
 
+        //USB permissions
+        usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+        // Listen for permission result
+        IntentFilter usbPermFilter = new IntentFilter(ACTION_USB_PERMISSION);
+        ContextCompat.registerReceiver(
+                this,
+                usbPermissionReceiver,
+                usbPermFilter,
+                ContextCompat.RECEIVER_NOT_EXPORTED
+        );
+
+        // Kick off check (call this when appropriate, e.g., after WebView loads or on a button)
+        ensureUsbPermission();
     }
 
     private long lastScreenshotTime = 0;
@@ -2350,10 +2389,20 @@ public class MainActivity extends AppCompatActivity
             }
             case MULTIPLE_PERMISSIONS: {
 
-                String[] PERMISSIONS = {
-                        Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE
-                };
+                String[] PERMISSIONS;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    PERMISSIONS = new String[] {
+                            Manifest.permission.READ_MEDIA_IMAGES,
+                            Manifest.permission.READ_MEDIA_VIDEO,
+                            Manifest.permission.CAMERA
+                    };
+                } else {
+                    PERMISSIONS = new String[] {
+                            Manifest.permission.READ_EXTERNAL_STORAGE,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.CAMERA
+                    };
+                }
 
 
                 if (!hasPermissions(MainActivity.this, permissions)) {
@@ -2607,6 +2656,8 @@ public class MainActivity extends AppCompatActivity
             CookieManager.getInstance().flush();
         }
 
+        //USB permissions
+        unregisterReceiver(usbPermissionReceiver);
 
         super.onDestroy();
         // Launcher-specific / Android 14-specific Improvement: Check if the application is still active and close again if not
@@ -5533,43 +5584,53 @@ public class MainActivity extends AppCompatActivity
             startActivityForResult(Intent.createChooser(i, "Upload"), FCR);
         }
 
-        @SuppressLint("InlinedApi")
-        @Override
-        public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
-
-            boolean hasStoragePermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ||
-                    (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-                            ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
-
-            boolean hasCameraPermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
-//            if (mUMA != null) {
-//                mUMA.onReceiveValue(null);
+//        @SuppressLint("InlinedApi")
+//        @Override
+//        public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+//
+//            boolean hasStoragePermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ||
+//                    (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+//                            ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
+//
+//            boolean hasCameraPermission = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+////            if (mUMA != null) {
+////                mUMA.onReceiveValue(null);
+////            }
+//            mUMA = filePathCallback;
+//            if (hasStoragePermission && hasCameraPermission) {
+//                openFilePicker(fileChooserParams);
+//                return true;
+//            } else {
+//                MainActivity.this.fileChooserParams = fileChooserParams;
+//                if (BuildConfig.IS_DEBUG_MODE)
+//                    Log.d(TAG, "File Chooser permissions not granted - requesting permissions");
+//                ArrayList<String> permissionList = new ArrayList<>();
+//                if (!hasCameraPermission && Config.requireCamera) {
+//                    permissionList.add(Manifest.permission.CAMERA);
+//                }
+//
+//                if (!hasStoragePermission && Config.requireStorage) {
+//                    permissionList.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+//                    permissionList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+//                }
+//
+//                if (!permissionList.isEmpty()) {
+//                    requestPermissions(permissionList.toArray(new String[0]), REQUEST_PERMISSION_STORAGE_CAMERA);
+//                }
+//                return true;
 //            }
+//        }
+
+        @Override
+        public boolean onShowFileChooser(WebView webView,
+                                         ValueCallback<Uri[]> filePathCallback,
+                                         FileChooserParams chooserParams) {
+
             mUMA = filePathCallback;
-            if (hasStoragePermission && hasCameraPermission) {
-                openFilePicker(fileChooserParams);
-                return true;
-            } else {
-                MainActivity.this.fileChooserParams = fileChooserParams;
-                if (BuildConfig.IS_DEBUG_MODE)
-                    Log.d(TAG, "File Chooser permissions not granted - requesting permissions");
-                ArrayList<String> permissionList = new ArrayList<>();
-                if (!hasCameraPermission && Config.requireCamera) {
-                    permissionList.add(Manifest.permission.CAMERA);
-                }
-
-                if (!hasStoragePermission && Config.requireStorage) {
-                    permissionList.add(Manifest.permission.READ_EXTERNAL_STORAGE);
-                    permissionList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-                }
-
-                if (!permissionList.isEmpty()) {
-                    requestPermissions(permissionList.toArray(new String[0]), REQUEST_PERMISSION_STORAGE_CAMERA);
-                }
-                return true;
-            }
+            fileChooserParams = chooserParams;
+            requestMediaAndCameraIfNeeded();
+            return true;
         }
-
 
         protected void openFileChooser(ValueCallback<Uri> uploadMsg) {
             mUploadMessage = uploadMsg;
@@ -5582,8 +5643,6 @@ public class MainActivity extends AppCompatActivity
         }
 
     }
-
-    WebChromeClient.FileChooserParams fileChooserParams;
 
     private void openFilePicker(WebChromeClient.FileChooserParams fileChooserParams) {
 
@@ -6180,4 +6239,66 @@ public class MainActivity extends AppCompatActivity
         Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         startActivity(i);
     }
+
+    private void ensureUsbPermission() {
+        if (usbManager == null) return;
+        HashMap<String, UsbDevice> map = usbManager.getDeviceList();
+        for (UsbDevice dev : map.values()) {
+            // TODO: match your real device IDs
+            if (dev.getVendorId() == 0x1B55 /* && dev.getProductId() == 0xXXXX */) {
+                if (!usbManager.hasPermission(dev)) {
+                    Intent permIntent = new Intent(ACTION_USB_PERMISSION).setPackage(getPackageName());
+                    PendingIntent pi = PendingIntent.getBroadcast(
+                            this, 0, permIntent, PendingIntent.FLAG_IMMUTABLE);
+                    usbManager.requestPermission(dev, pi);
+                    if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "Requested USB permission for " + dev.getDeviceName());
+                } else {
+                    if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "Already have USB permission for " + dev.getDeviceName());
+                    // TODO: open/init ZKTeco SDK here if you want immediate open
+                }
+                break;
+            }
+        }
+    }
+
+    private void requestMediaAndCameraIfNeeded() {
+        List<String> toRequest = new ArrayList<>();
+
+        if (Config.requireCamera && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            toRequest.add(Manifest.permission.CAMERA);
+        }
+
+        if (Config.requireStorage) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                // Android 13+: use media-specific permissions
+                if (checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                    toRequest.add(Manifest.permission.READ_MEDIA_IMAGES);
+                }
+                // Add video if your file picker needs it
+                if (checkSelfPermission(Manifest.permission.READ_MEDIA_VIDEO) != PackageManager.PERMISSION_GRANTED) {
+                    toRequest.add(Manifest.permission.READ_MEDIA_VIDEO);
+                }
+            } else {
+                if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    toRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+                }
+                if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    toRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                }
+            }
+        }
+
+        if (!toRequest.isEmpty()) {
+            ActivityCompat.requestPermissions(
+                    this,
+                    toRequest.toArray(new String[0]),
+                    REQUEST_PERMISSION_STORAGE_CAMERA
+            );
+        } else {
+            if (mUMA != null && fileChooserParams != null) {
+                openFilePicker(fileChooserParams);
+            }
+        }
+    }
+
 }
