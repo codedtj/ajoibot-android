@@ -22,6 +22,10 @@ android {
                 onesignal_app_id: ONESIGNAL_APP_ID,
                 onesignal_google_project_number: 'REMOTE'
         ]
+
+        ndk {
+            abiFilters "armeabi-v7a", "arm64-v8a"
+        }
     }
     buildTypes {
         debug {
