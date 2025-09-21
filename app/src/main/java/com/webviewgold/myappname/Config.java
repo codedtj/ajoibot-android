@@ -11,20 +11,20 @@ public class Config {
     // 1. Buy a WebViewGold license (https://www.webviewgold.com/download/android) for each app you publish. If your app is going to be free, a "Regular license" is required. If your app will be sold to your users or if you use the In-App Purchases API, an "Extended license" is required. More info: https://codecanyon.net/licenses/standard?ref=onlineappcreator
     // 2. Grab your Purchase Code (this is how to find it quickly: https://help.market.envato.com/hc/en-us/articles/202822600-Where-Is-My-Purchase-Code-)
     // 3. Great! Just enter it here and restart your app:
-    public static final String PURCHASECODE = "xxxxxx-xxxxxx-xxxxxx-xxxxxx-xxxxxx";
+    public static final String PURCHASECODE = "e2998b09-b22b-4909-b14b-7cc5f9a0850d";
 
     // 4. Optional: Enter your email address to receive status updates and news to (opt-in confirmation required; will also be stored within app; Terms and Conditions apply; keep empty or with "app_admin@example.org" to not use this service):
-    public static final String APP_ADMIN_EMAIL = "app_admin@example.org";
+    public static final String APP_ADMIN_EMAIL = "info@ajoibot.tj";
     // 5. Enjoy your app! :)
 
     /**
      * Main Configuration Of Your WebViewGold App
      */
     // Domain host and subdomain without any https:// or http:// prefixes (e.g., "www.example.org")
-    public static final String HOST = "www.example.org";
+    public static final String HOST = "www.sit.tj";
 
     // Your URL including https:// or http:// prefix and including www. or any required subdomain (e.g., "https://www.example.org")
-    public static String HOME_URL = "https://www.example.org";
+    public static String HOME_URL = "https://sit.tj/";
 
     // Set to "false" to disable the progress spinner/loading spinner
     public static final boolean ACTIVATE_PROGRESS_BAR = true;
@@ -36,7 +36,7 @@ public class Config {
     public static final String TABLET_ORIENTATION = "portrait";
 
     // Set a customized UserAgent for WebView URL requests (or leave it empty to use the default Android UserAgent)
-    public static final String USER_AGENT = "";
+    public static final String USER_AGENT = "ajoibot-sit-app";
 
     // Set to "true" to activate Hardware Acceleration; it can improve rendering performance but can also increase memory usage and may cause compatibility issues with some content
     public static final boolean HARDWARE_ACCELERATION = false;
@@ -94,10 +94,10 @@ public class Config {
     public static final boolean IS_DEEP_LINKING_ENABLED = true;
 
     // Set to "true" if you want to accepts custom scheme deeplinks like "webviewgold://" (then https:// scheme will be disabled)
-    public static final boolean IS_CUSTOM_SCHEME_ENABLED = false;
+    public static final boolean IS_CUSTOM_SCHEME_ENABLED = true;
 
     // Customize deeplinking scheme prefix here and also in AndroidManifest.xml
-    public static final String CUSTOM_DEEPLINK_SCHEME = "webviewgold";
+    public static final String CUSTOM_DEEPLINK_SCHEME = "ajoibotapp";
 
     //Set to "true" to open the notification deep linking URLs in the system browser instead of your app
     public static final boolean OPEN_NOTIFICATION_URLS_IN_SYSTEM_BROWSER = false;
@@ -134,10 +134,10 @@ public class Config {
     public static final boolean PREVENT_SLEEP = false;
 
     //Set to "true" to enable navigation by swiping left or right to move back or forward a page
-    public static final boolean ENABLE_SWIPE_NAVIGATE = false;
+    public static final boolean ENABLE_SWIPE_NAVIGATE = true;
 
     //Set to "true" to enable swiping down to refresh the page (additionally, you can always call enablepulltorefresh:// or disablepulltorefresh:// from your website to activate or deactivate pull-to-refresh dynamically)
-    public static final boolean ENABLE_PULL_REFRESH = false;
+    public static final boolean ENABLE_PULL_REFRESH = true;
 
     //Set to "false" to prevent zoom functionalities for the app user (works by additionally using script injection)
     public static final boolean ENABLE_ZOOM = true;
@@ -188,7 +188,7 @@ public class Config {
     public static boolean BLOCK_SELF_SIGNED_AND_FAULTY_SSL_CERTS = false;
 
     // Set to "true" to enable the app's functionality to detect rooted devices and disable itself on them (Note: Root detection is not always reliable and may not work on all devices)
-    public static boolean BLOCK_ROOTED_DEVICES = false;
+    public static boolean BLOCK_ROOTED_DEVICES = true;
 
     //Set to "false" to disable link drag and drop
     public static boolean LINK_DRAG_AND_DROP = true;
@@ -199,9 +199,9 @@ public class Config {
     /**
      * Dialog Options
      */
-    public static boolean SHOW_FIRSTRUN_DIALOG = true; //Set to false to disable the First Run Dialog
+    public static boolean SHOW_FIRSTRUN_DIALOG = false; //Set to false to disable the First Run Dialog
     public static boolean SHOW_FACEBOOK_DIALOG = false; //Set to false to disable the Follow On Facebook Dialog
-    public static boolean SHOW_RATE_DIALOG = true; //Set to false to disable the Rate This App Dialog
+    public static boolean SHOW_RATE_DIALOG = false; //Set to false to disable the Rate This App Dialog
 
     // Set the minimum number of days to be passed after the application is installed before the "Rate this app" dialog is displayed
     public static final int RATE_DAYS_UNTIL_PROMPT = 3;
