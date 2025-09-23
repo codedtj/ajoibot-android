@@ -390,8 +390,18 @@ public class MainActivity extends AppCompatActivity
         @Override public void onReceive(Context context, Intent intent) {
             if (intent == null) return;
             if (ACTION_USB_PERMISSION.equals(intent.getAction())) {
-                UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                UsbDevice device;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice.class);
+                } else {
+                    device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                }
                 boolean granted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false);
+                // On newer Android versions the broadcast may not reliably reflect permission state in the EXTRA.
+                // Also treat it as granted if UsbManager already reports permission for the device.
+                if (!granted && device != null && usbManager != null) {
+                    try { granted = usbManager.hasPermission(device); } catch (Throwable ignore) {}
+                }
                 if (granted && device != null) {
                     if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "USB permission granted for " + device.getDeviceName());
                     startZkSensorCapture();
