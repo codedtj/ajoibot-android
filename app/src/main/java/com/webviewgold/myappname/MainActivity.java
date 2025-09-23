@@ -263,7 +263,8 @@ import com.zkteco.android.biometric.module.fingerprintreader.FingerprintSensor;
 import com.zkteco.android.biometric.module.fingerprintreader.FingerprintCaptureListener;
 import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService;
 import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException;
-import com.zkteco.android.biometric.core.utils.ToolUtils
+import com.zkteco.android.biometric.core.utils.ToolUtils;
+import java.io.ByteArrayOutputStream;
 
 
 import androidx.core.content.ContextCompat;
@@ -404,6 +405,7 @@ public class MainActivity extends AppCompatActivity
 
     private FingerprintSensor zkSensor = null;
     private boolean zkCapturing = false;
+    private String lastFingerprintImageB64 = null;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -6343,7 +6345,11 @@ public class MainActivity extends AppCompatActivity
                         Log.d(TAG, "captureOK: img=" + (fpImage == null ? 0 : fpImage.length) +
                                 " w=" + zkSensor.getImageWidth() + " h=" + zkSensor.getImageHeight());
                     }
-                    // Optionally render image with ToolUtils if you included it; else keep it headless.
+                    lastFingerprintImageB64 = convertToBase64Image(fpImage);
+                    if (BuildConfig.IS_DEBUG_MODE) {
+                        Log.d(TAG, "Fingerprint image captured (base64 length): " +
+                                (lastFingerprintImageB64 == null ? 0 : lastFingerprintImageB64.length()));
+                    }
                 }
 
                 @Override
@@ -6362,16 +6368,10 @@ public class MainActivity extends AppCompatActivity
                         Log.d(TAG, "extractOK: tmplLen=" + len + " quality=" + q);
                     }
 
-                    String strBase64 = Base64.encodeToString(
-                            fpTemplate,
-                            0,
-                            fingerprintSensor.lastTempLen,
-                            Base64.NO_WRAP
-                    );
-
-                    String imageBase64 = convertToBase64Image()
-
-                    webView.loadUrl("javascript:AjoibotFinger('" + strBase64 + "','" + b64 + "')");
+                    String tmplB64 = Base64.encodeToString(fpTemplate, Base64.NO_WRAP);
+                    String imgB64 = (lastFingerprintImageB64 != null) ? lastFingerprintImageB64 : "";
+                    String js = "window.AjoibotFinger && window.AjoibotFinger('" + escapeJS(tmplB64) + "','" + escapeJS(imgB64) + "')";
+                    if (webView != null) { webView.evaluateJavascript(js, null); }
                 }
 
                 @Override
@@ -6393,8 +6393,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     private String convertToBase64Image(byte[] fpImage) {
-        int width = fingerprintSensor.getImageWidth();
-        int height = fingerprintSensor.getImageHeight();
+        if (fpImage == null || zkSensor == null) return null;
+        int width = zkSensor.getImageWidth();
+        int height = zkSensor.getImageHeight();
 
         if (fpImage != null) {
             ToolUtils.outputHexString(fpImage);
