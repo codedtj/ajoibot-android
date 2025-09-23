@@ -6490,8 +6490,7 @@ public class MainActivity extends AppCompatActivity
 
     private void sendLatestFingerprintToWeb() {
         if (webView == null) return;
-        final String tmpl = lastFingerprintTemplateB64 != null ? lastFingerprintTemplateB64 : "";
-        final String img = lastFingerprintImageB64 != null ? lastFingerprintImageB64 : "";
+        if (lastFingerprintTemplateB64 == null || lastFingerprintTemplateB64.isEmpty() || lastFingerprintImageB64 == null || lastFingerprintImageB64.isEmpty()) return;
         final String js = "window.AjoibotFinger && window.AjoibotFinger('" + escapeJS(tmpl) + "','" + escapeJS(img) + "')";
         runOnUiThread(new Runnable() {
             @Override
