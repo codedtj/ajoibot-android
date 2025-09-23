@@ -6344,6 +6344,23 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    @Nullable
+    private UsbDevice findZkDevice() {
+        if (usbManager == null) return null;
+        try {
+            java.util.HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
+            if (deviceList == null || deviceList.isEmpty()) return null;
+            for (UsbDevice dev : deviceList.values()) {
+                if (dev != null && dev.getVendorId() == ZK_VID && dev.getProductId() == ZK_PID) {
+                    return dev;
+                }
+            }
+        } catch (Throwable t) {
+            if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "findZkDevice error: " + t.getMessage());
+        }
+        return null;
+    }
+
     private void startZkSensorCapture() {
         if (zkCapturing) {
             if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "ZK capture already running");
