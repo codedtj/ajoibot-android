@@ -6414,13 +6414,13 @@ public class MainActivity extends AppCompatActivity
                         Log.d(TAG, "captureOK: img=" + (fpImage == null ? 0 : fpImage.length) +
                                 " w=" + zkSensor.getImageWidth() + " h=" + zkSensor.getImageHeight());
                     }
-                    var value = convertToBase64Image(fpImage);
+                    String value = convertToBase64Image(fpImage);
 
                     if (value == lastFingerprintImageB64) {
                         return;
                     }
 
-                    lastFingerprintImageB64 = value
+                    lastFingerprintImageB64 = value;
                     if (BuildConfig.IS_DEBUG_MODE) {
                         Log.d(TAG, "Fingerprint image captured (base64 length): " +
                                 (lastFingerprintImageB64 == null ? 0 : lastFingerprintImageB64.length()));
@@ -6491,7 +6491,7 @@ public class MainActivity extends AppCompatActivity
     private void sendLatestFingerprintToWeb() {
         if (webView == null) return;
         if (lastFingerprintTemplateB64 == null || lastFingerprintTemplateB64.isEmpty() || lastFingerprintImageB64 == null || lastFingerprintImageB64.isEmpty()) return;
-        final String js = "window.AjoibotFinger && window.AjoibotFinger('" + escapeJS(tmpl) + "','" + escapeJS(img) + "')";
+        final String js = "window.AjoibotFinger && window.AjoibotFinger('" + escapeJS(lastFingerprintTemplateB64) + "','" + escapeJS(lastFingerprintImageB64) + "')";
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
