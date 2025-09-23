@@ -123,6 +123,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.JavascriptInterface;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -384,6 +385,7 @@ public class MainActivity extends AppCompatActivity
     //USB permissions
     private static final String ACTION_USB_PERMISSION = "com.webviewgold.myappname.USB_PERMISSION";
     private UsbManager usbManager;
+    private BroadcastReceiver usbAttachDetachReceiver;
     private BroadcastReceiver usbPermissionReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             if (intent == null) return;
@@ -1118,19 +1120,36 @@ public class MainActivity extends AppCompatActivity
                 ContextCompat.RECEIVER_NOT_EXPORTED
         );
 
-        BroadcastReceiver attachReceiver = new BroadcastReceiver() {
+        usbAttachDetachReceiver = new BroadcastReceiver() {
             @Override public void onReceive(Context context, Intent intent) {
-                if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(intent.getAction())) {
+                if (intent == null) return;
+                String action = intent.getAction();
+                if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
                     UsbDevice dev = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-                    if (dev != null && dev.getVendorId() == ZK_VID) {
+                    if (dev != null && dev.getVendorId() == ZK_VID && dev.getProductId() == ZK_PID) {
                         if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "ZK device attached: " + dev.getDeviceName());
                         ensureUsbPermissionFor(dev);
+                    }
+                } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+                    UsbDevice dev = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                    if (dev != null && dev.getVendorId() == ZK_VID && dev.getProductId() == ZK_PID) {
+                        if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "ZK device detached: " + dev.getDeviceName());
+                        stopZkSensorCapture();
+                        destroyZkSensor();
                     }
                 }
             }
         };
-        IntentFilter attachFilter = new IntentFilter(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-        ContextCompat.registerReceiver(this, attachReceiver, attachFilter, ContextCompat.RECEIVER_EXPORTED);
+        IntentFilter attachFilter = new IntentFilter();
+        attachFilter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
+        attachFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+        ContextCompat.registerReceiver(this, usbAttachDetachReceiver, attachFilter, ContextCompat.RECEIVER_EXPORTED);
+
+        // If device is already attached when app starts, request permission and start capture
+        UsbDevice existing = findZkDevice();
+        if (existing != null) {
+            ensureUsbPermissionFor(existing);
+        }
     }
 
     private long lastScreenshotTime = 0;
@@ -2686,7 +2705,8 @@ public class MainActivity extends AppCompatActivity
         }
 
         //USB permissions
-        unregisterReceiver(usbPermissionReceiver);
+        try { unregisterReceiver(usbPermissionReceiver); } catch (Throwable ignore) {}
+        try { if (usbAttachDetachReceiver != null) unregisterReceiver(usbAttachDetachReceiver); } catch (Throwable ignore) {}
 
         stopZkSensorCapture();
         destroyZkSensor();
