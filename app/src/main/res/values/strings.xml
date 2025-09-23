@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">Toj</string>
+    <string name="app_name" translatable="false">Toj Terminal</string>
 
     <!--"Thanks for downloading!" first run dialog-->
     <string name="first_launch_title">Welcome!</string>
