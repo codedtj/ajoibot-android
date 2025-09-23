@@ -406,6 +406,7 @@ public class MainActivity extends AppCompatActivity
     private FingerprintSensor zkSensor = null;
     private boolean zkCapturing = false;
     private String lastFingerprintImageB64 = null;
+    private String lastFingerprintTemplateB64 = null;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -6350,6 +6351,7 @@ public class MainActivity extends AppCompatActivity
                         Log.d(TAG, "Fingerprint image captured (base64 length): " +
                                 (lastFingerprintImageB64 == null ? 0 : lastFingerprintImageB64.length()));
                     }
+                    sendLatestFingerprintToWeb();
                 }
 
                 @Override
@@ -6369,9 +6371,8 @@ public class MainActivity extends AppCompatActivity
                     }
 
                     String tmplB64 = Base64.encodeToString(fpTemplate, Base64.NO_WRAP);
-                    String imgB64 = (lastFingerprintImageB64 != null) ? lastFingerprintImageB64 : "";
-                    String js = "window.AjoibotFinger && window.AjoibotFinger('" + escapeJS(tmplB64) + "','" + escapeJS(imgB64) + "')";
-                    if (webView != null) { webView.evaluateJavascript(js, null); }
+                    lastFingerprintTemplateB64 = tmplB64;
+                    sendLatestFingerprintToWeb();
                 }
 
                 @Override
@@ -6409,6 +6410,14 @@ public class MainActivity extends AppCompatActivity
         }
 
         return null;
+    }
+
+    private void sendLatestFingerprintToWeb() {
+        if (webView == null) return;
+        String tmpl = lastFingerprintTemplateB64 != null ? lastFingerprintTemplateB64 : "";
+        String img = lastFingerprintImageB64 != null ? lastFingerprintImageB64 : "";
+        String js = "window.AjoibotFinger && window.AjoibotFinger('" + escapeJS(tmpl) + "','" + escapeJS(img) + "')";
+        webView.evaluateJavascript(js, null);
     }
 
     private void stopZkSensorCapture() {
