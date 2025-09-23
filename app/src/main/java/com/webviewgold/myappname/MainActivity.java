@@ -6467,8 +6467,6 @@ public class MainActivity extends AppCompatActivity
         int height = zkSensor.getImageHeight();
 
         if (fpImage != null) {
-            ToolUtils.outputHexString(fpImage);
-
             Bitmap bitmapFp = ToolUtils.renderCroppedGreyScaleBitmap(fpImage, width, height);
 
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
