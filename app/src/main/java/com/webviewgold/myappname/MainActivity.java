@@ -265,7 +265,6 @@ import com.zkteco.android.biometric.module.fingerprintreader.FingerprintCaptureL
 import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService;
 import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException;
 import com.zkteco.android.biometric.core.utils.ToolUtils;
-import com.zkteco.android.biometric.core.utils.LogHelper;
 import java.io.ByteArrayOutputStream;
 
 
@@ -429,13 +428,8 @@ public class MainActivity extends AppCompatActivity
 
     private FingerprintSensor zkSensor = null;
     private boolean zkCapturing = false;
-    private boolean zkStarting = false;
-    private volatile boolean zkRestartScheduled = false;
     private String lastFingerprintImageB64 = null;
     private String lastFingerprintTemplateB64 = null;
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private Runnable jsDispatchRunnable = null;
-    private static final long JS_DEBOUNCE_MS = 120;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -6399,103 +6393,72 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void startZkSensorCapture() {
-        if (zkCapturing || zkStarting) {
-            if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "ZK capture already running or starting");
+        if (zkCapturing) {
+            if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "ZK capture already running");
             return;
         }
-        zkStarting = true;
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    // Reduce SDK logging noise to avoid overhead
-                    LogHelper.setLevel(Log.WARN);
+        try {
+            // Build params for USB
+            java.util.Map<String, Object> params = new java.util.HashMap<>();
+            params.put(ParameterHelper.PARAM_KEY_VID, ZK_VID);
+            params.put(ParameterHelper.PARAM_KEY_PID, ZK_PID);
 
-                    // Build params for USB
-                    java.util.Map<String, Object> params = new java.util.HashMap<>();
-                    params.put(ParameterHelper.PARAM_KEY_VID, ZK_VID);
-                    params.put(ParameterHelper.PARAM_KEY_PID, ZK_PID);
+            // Create sensor for USB transport
+            zkSensor = FingprintFactory.createFingerprintSensor(this, TransportType.USB, params);
 
-                    // Create sensor for USB transport
-                    zkSensor = FingprintFactory.createFingerprintSensor(MainActivity.this, TransportType.USB, params);
-
-                    // Listener: image & template callbacks
-                    FingerprintCaptureListener listener = new FingerprintCaptureListener() {
-                        @Override
-                        public void captureOK(final byte[] fpImage) {
-                            if (BuildConfig.IS_DEBUG_MODE && zkSensor != null) {
-                                Log.d(TAG, "captureOK: img=" + (fpImage == null ? 0 : fpImage.length) +
-                                        " w=" + zkSensor.getImageWidth() + " h=" + zkSensor.getImageHeight());
-                            }
-                            lastFingerprintImageB64 = convertToBase64Image(fpImage);
-                            if (BuildConfig.IS_DEBUG_MODE) {
-                                Log.d(TAG, "Fingerprint image captured (base64 length): " +
-                                        (lastFingerprintImageB64 == null ? 0 : lastFingerprintImageB64.length()));
-                            }
-                            sendLatestFingerprintToWeb();
-                        }
-
-                        @Override
-                        public void captureError(FingerprintException e) {
-                            int err = e != null ? e.getErrorCode() : 0;
-                            if (BuildConfig.IS_DEBUG_MODE) {
-                                Log.d(TAG, "captureError errno=" + err +
-                                        (e != null ? (" inner=" + e.getInternalErrorCode() + " msg=" + e.getMessage()) : ""));
-                            }
-                            // Prevent hot-looping on continuous capture failures
-                            if (!zkRestartScheduled) {
-                                zkRestartScheduled = true;
-                                mainHandler.postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try { stopZkSensorCapture(); } catch (Throwable ignore) {}
-                                        try { destroyZkSensor(); } catch (Throwable ignore) {}
-                                        // small backoff before restarting capture
-                                        mainHandler.postDelayed(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                zkRestartScheduled = false;
-                                                startZkSensorCapture();
-                                            }
-                                        }, 300);
-                                    }
-                                }, 200);
-                            }
-                        }
-
-                        @Override
-                        public void extractOK(final byte[] fpTemplate) {
-                            if (BuildConfig.IS_DEBUG_MODE) {
-                                int q = ZKFingerService.getTemplateQuality(fpTemplate);
-                                int len = ZKFingerService.getTemplateLength(fpTemplate);
-                                Log.d(TAG, "extractOK: tmplLen=" + len + " quality=" + q);
-                            }
-
-                            String tmplB64 = Base64.encodeToString(fpTemplate, Base64.NO_WRAP);
-                            lastFingerprintTemplateB64 = tmplB64;
-                            sendLatestFingerprintToWeb();
-                        }
-
-                        @Override
-                        public void extractError(int errno) {
-                            if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "extractError code=" + errno);
-                        }
-                    };
-
-                    // Open and start capture (index 0 since you typically have one device)
-                    zkSensor.open(0);                                                // connect device
-                    zkSensor.setFingerprintCaptureListener(0, listener);             // set callbacks
-                    zkSensor.startCapture(0);                                        // start
-                    zkCapturing = true;
-                    if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "ZK capture started");
-                } catch (Throwable e) {
-                    zkCapturing = false;
-                    if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "ZK start failed: " + e.getMessage());
-                } finally {
-                    zkStarting = false;
+            // Listener: image & template callbacks
+            FingerprintCaptureListener listener = new FingerprintCaptureListener() {
+                @Override
+                public void captureOK(final byte[] fpImage) {
+                    if (BuildConfig.IS_DEBUG_MODE) {
+                        Log.d(TAG, "captureOK: img=" + (fpImage == null ? 0 : fpImage.length) +
+                                " w=" + zkSensor.getImageWidth() + " h=" + zkSensor.getImageHeight());
+                    }
+                    lastFingerprintImageB64 = convertToBase64Image(fpImage);
+                    if (BuildConfig.IS_DEBUG_MODE) {
+                        Log.d(TAG, "Fingerprint image captured (base64 length): " +
+                                (lastFingerprintImageB64 == null ? 0 : lastFingerprintImageB64.length()));
+                    }
+                    sendLatestFingerprintToWeb();
                 }
-            }
-        }, "zk-start").start();
+
+                @Override
+                public void captureError(FingerprintException e) {
+                    if (BuildConfig.IS_DEBUG_MODE) {
+                        Log.d(TAG, "captureError errno=" + e.getErrorCode() +
+                                " inner=" + e.getInternalErrorCode() + " msg=" + e.getMessage());
+                    }
+                }
+
+                @Override
+                public void extractOK(final byte[] fpTemplate) {
+                    if (BuildConfig.IS_DEBUG_MODE) {
+                        int q = ZKFingerService.getTemplateQuality(fpTemplate);
+                        int len = ZKFingerService.getTemplateLength(fpTemplate);
+                        Log.d(TAG, "extractOK: tmplLen=" + len + " quality=" + q);
+                    }
+
+                    String tmplB64 = Base64.encodeToString(fpTemplate, Base64.NO_WRAP);
+                    lastFingerprintTemplateB64 = tmplB64;
+                    sendLatestFingerprintToWeb();
+                }
+
+                @Override
+                public void extractError(int errno) {
+                    if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "extractError code=" + errno);
+                }
+            };
+
+            // Open and start capture (index 0 since you typically have one device)
+            zkSensor.open(0);                                                // connect device
+            zkSensor.setFingerprintCaptureListener(0, listener);             // set callbacks
+            zkSensor.startCapture(0);                                        // start
+            zkCapturing = true;
+            if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "ZK capture started");
+        } catch (Throwable e) {
+            zkCapturing = false;
+            if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "ZK start failed: " + e.getMessage());
+        }
     }
 
     private String convertToBase64Image(byte[] fpImage) {
@@ -6504,7 +6467,8 @@ public class MainActivity extends AppCompatActivity
         int height = zkSensor.getImageHeight();
 
         if (fpImage != null) {
-            // Avoid heavy hex logging that can block UI
+            ToolUtils.outputHexString(fpImage);
+
             Bitmap bitmapFp = ToolUtils.renderCroppedGreyScaleBitmap(fpImage, width, height);
 
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -6518,21 +6482,15 @@ public class MainActivity extends AppCompatActivity
 
     private void sendLatestFingerprintToWeb() {
         if (webView == null) return;
-        // Debounce JS injection to avoid spamming main thread
-        if (jsDispatchRunnable == null) {
-            jsDispatchRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    String tmpl = lastFingerprintTemplateB64 != null ? lastFingerprintTemplateB64 : "";
-                    String img = lastFingerprintImageB64 != null ? lastFingerprintImageB64 : "";
-                    String js = "window.AjoibotFinger && window.AjoibotFinger('" + escapeJS(tmpl) + "','" + escapeJS(img) + "')";
-                    webView.evaluateJavascript(js, null);
-                }
-            };
-        }
-        // Coalesce multiple rapid updates
-        mainHandler.removeCallbacks(jsDispatchRunnable);
-        mainHandler.postDelayed(jsDispatchRunnable, JS_DEBOUNCE_MS);
+        final String tmpl = lastFingerprintTemplateB64 != null ? lastFingerprintTemplateB64 : "";
+        final String img = lastFingerprintImageB64 != null ? lastFingerprintImageB64 : "";
+        final String js = "window.AjoibotFinger && window.AjoibotFinger('" + escapeJS(tmpl) + "','" + escapeJS(img) + "')";
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                webView.evaluateJavascript(js, null);
+            }
+        });
     }
 
     private void stopZkSensorCapture() {
