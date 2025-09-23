@@ -30,10 +30,10 @@ public class Config {
     public static final boolean ACTIVATE_PROGRESS_BAR = true;
 
     // Set the phone orientation to either "portrait", "landscape", or "auto"
-    public static final String PHONE_ORIENTATION = "portrait";
+    public static final String PHONE_ORIENTATION = "auto";
 
     // Set the tablet orientation to either "portrait", "landscape", or "auto"
-    public static final String TABLET_ORIENTATION = "portrait";
+    public static final String TABLET_ORIENTATION = "auto";
 
     // Set a customized UserAgent for WebView URL requests (or leave it empty to use the default Android UserAgent)
     public static final String USER_AGENT = "ajoibot-sit-app";
