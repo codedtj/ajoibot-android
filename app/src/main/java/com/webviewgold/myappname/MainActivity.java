@@ -6484,8 +6484,9 @@ public class MainActivity extends AppCompatActivity
         if (webView == null) return;
         String tmpl = lastFingerprintTemplateB64 != null ? lastFingerprintTemplateB64 : "";
         String img = lastFingerprintImageB64 != null ? lastFingerprintImageB64 : "";
-        String js = "window.AjoibotFinger && window.AjoibotFinger('" + escapeJS(tmpl) + "','" + escapeJS(img) + "')";
-        webView.evaluateJavascript(js, null);
+// String js = "window.AjoibotFinger && window.AjoibotFinger('" + escapeJS(tmpl) + "','" + escapeJS(img) + "')";
+//        webView.evaluateJavascript(js, null);
+        webView.loadUrl("javascript:AjoibotFinger('" + tmpl + "','" + img + "')");
     }
 
     private void stopZkSensorCapture() {
