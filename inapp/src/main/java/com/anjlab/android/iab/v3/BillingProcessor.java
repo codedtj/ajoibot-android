@@ -691,11 +691,11 @@ public class BillingProcessor extends BillingBase
 					if (oldProductDetails != null)
 					{
 						String oldToken = oldProductDetails.purchaseData.purchaseToken;
-						billingFlowParamsBuilder.setSubscriptionUpdateParams(
-								BillingFlowParams.SubscriptionUpdateParams
-										.newBuilder()
-										.setOldSkuPurchaseToken(oldToken)
-										.build());
+//						billingFlowParamsBuilder.setSubscriptionUpdateParams(
+//								BillingFlowParams.SubscriptionUpdateParams
+//										.newBuilder()
+//										.setOldSkuPurchaseToken(oldToken)
+//										.build());
 					}
 				}
 

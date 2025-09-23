@@ -48,6 +48,12 @@ android {
     buildFeatures {
         buildConfig = true // Enable BuildConfig feature
     }
+    // Ensure native .so binaries are packaged from app/libs/**/ directories
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
 }
 
 dependencies {
