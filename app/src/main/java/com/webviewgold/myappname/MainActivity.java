@@ -6414,13 +6414,8 @@ public class MainActivity extends AppCompatActivity
                         Log.d(TAG, "captureOK: img=" + (fpImage == null ? 0 : fpImage.length) +
                                 " w=" + zkSensor.getImageWidth() + " h=" + zkSensor.getImageHeight());
                     }
-                    String value = convertToBase64Image(fpImage);
 
-                    if (value == lastFingerprintImageB64) {
-                        return;
-                    }
-
-                    lastFingerprintImageB64 = value;
+                    lastFingerprintImageB64 = convertToBase64Image(fpImage);
                     if (BuildConfig.IS_DEBUG_MODE) {
                         Log.d(TAG, "Fingerprint image captured (base64 length): " +
                                 (lastFingerprintImageB64 == null ? 0 : lastFingerprintImageB64.length()));
@@ -6444,12 +6439,7 @@ public class MainActivity extends AppCompatActivity
                         Log.d(TAG, "extractOK: tmplLen=" + len + " quality=" + q);
                     }
 
-                    String tmplB64 = Base64.encodeToString(fpTemplate, Base64.NO_WRAP);
-                    if (tmplB64 == lastFingerprintImageB64) {
-                        return;
-                    }
-
-                    lastFingerprintTemplateB64 = tmplB64;
+                    lastFingerprintTemplateB64 = Base64.encodeToString(fpTemplate, Base64.NO_WRAP);
                     sendLatestFingerprintToWeb();
                 }
 
@@ -6498,6 +6488,8 @@ public class MainActivity extends AppCompatActivity
                 webView.evaluateJavascript(js, null);
             }
         });
+        lastFingerprintTemplateB64 = null;
+        lastFingerprintImageB64 = null;
     }
 
     private void stopZkSensorCapture() {
