@@ -397,16 +397,27 @@ public class MainActivity extends AppCompatActivity
                     device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                 }
                 boolean granted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false);
+
+                // Fallback for some Android 13+ devices where EXTRA_DEVICE can be null
+                if (device == null) {
+                    device = findZkDevice();
+                }
+
                 // On newer Android versions the broadcast may not reliably reflect permission state in the EXTRA.
                 // Also treat it as granted if UsbManager already reports permission for the device.
                 if (!granted && device != null && usbManager != null) {
                     try { granted = usbManager.hasPermission(device); } catch (Throwable ignore) {}
                 }
+
                 if (granted && device != null) {
                     if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "USB permission granted for " + device.getDeviceName());
                     startZkSensorCapture();
+                } else if (device != null && usbManager != null && usbManager.hasPermission(device)) {
+                    // As a last check, if the manager says we have permission, proceed
+                    if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "USB permission implicitly granted for " + device.getDeviceName());
+                    startZkSensorCapture();
                 } else {
-                    if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "USB permission denied.");
+                    if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "USB permission denied or device not found.");
                 }
             }
         }
@@ -1135,13 +1146,23 @@ public class MainActivity extends AppCompatActivity
                 if (intent == null) return;
                 String action = intent.getAction();
                 if (UsbManager.ACTION_USB_DEVICE_ATTACHED.equals(action)) {
-                    UsbDevice dev = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                    UsbDevice dev;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        dev = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice.class);
+                    } else {
+                        dev = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                    }
                     if (dev != null && dev.getVendorId() == ZK_VID && dev.getProductId() == ZK_PID) {
                         if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "ZK device attached: " + dev.getDeviceName());
                         ensureUsbPermissionFor(dev);
                     }
                 } else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
-                    UsbDevice dev = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                    UsbDevice dev;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        dev = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE, UsbDevice.class);
+                    } else {
+                        dev = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                    }
                     if (dev != null && dev.getVendorId() == ZK_VID && dev.getProductId() == ZK_PID) {
                         if (BuildConfig.IS_DEBUG_MODE) Log.d(TAG, "ZK device detached: " + dev.getDeviceName());
                         stopZkSensorCapture();
