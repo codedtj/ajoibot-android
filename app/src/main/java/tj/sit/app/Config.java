@@ -234,7 +234,7 @@ public class Config {
      * Firebase Push Notification Options
      */
     //Set to "true" to activate Firebase Push (download the google-services.json file and replace the existing one via Mac Finder/Windows Explorer)
-    public static final boolean FIREBASE_PUSH_ENABLED = false;
+    public static final boolean FIREBASE_PUSH_ENABLED = true;
 
     public static final String firebasechanneltopic = "NONE"; //Topic name of Firebase channel
 
