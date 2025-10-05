@@ -79,7 +79,7 @@ public class Config {
     public static final int QR_CODE_URL_OPTIONS = 0;
 
     // Set to "true" in order to automatically set JavaScript variables; will eliminate the need to manually call methods like get-uuid://; currently, it supports loading the app version, OneSignal and Firebase player IDs, as well as the UUID
-    public static final boolean AUTO_INJECT_VARIABLES = false;
+    public static final boolean AUTO_INJECT_VARIABLES = true;
 
     // Set to "true" to clear the WebView cache & cookies on each app startup and do not use cached versions of your web app/website
     public static final boolean CLEAR_CACHE_ON_STARTUP = false;
