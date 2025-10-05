@@ -182,7 +182,7 @@ public class Config {
     public static boolean PREVENT_SCREEN_CAPTURE = false;
 
     // Set to "true" to add the UUID parameter 'uuid=XYZ' to the first URL request
-    public static final boolean UUID_ENHANCE_WEBVIEW_URL = false;
+    public static final boolean UUID_ENHANCE_WEBVIEW_URL = true;
 
     //Set to "true" to block content signed with self-signed SSL (user) certificates & faulty SSL certificates; maybe consider blocking all Non-HTTPS content, see https://www.webviewgold.com/support-center/knowledgebase/how-to-prevent-non-https-connections-in-webviewgold-for-android-switching-usescleartexttraffic-from-true-to-false/
     public static boolean BLOCK_SELF_SIGNED_AND_FAULTY_SSL_CERTS = false;
