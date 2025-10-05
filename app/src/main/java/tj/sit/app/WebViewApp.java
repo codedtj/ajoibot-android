@@ -1,4 +1,4 @@
-package com.webviewgold.myappname;
+package tj.sit.app;
 
 import android.app.Activity;
 import android.app.Application;

@@ -1,4 +1,4 @@
-package com.webviewgold.myappname.flashlight;
+package tj.sit.app.flashlight;
 
 import android.content.Context;
 import android.content.pm.PackageManager;

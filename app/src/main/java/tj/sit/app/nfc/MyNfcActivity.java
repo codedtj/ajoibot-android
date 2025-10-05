@@ -1,4 +1,4 @@
-package com.webviewgold.myappname.nfc;
+package tj.sit.app.nfc;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -19,7 +19,7 @@ import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.webviewgold.myappname.BuildConfig;
+import tj.sit.app.BuildConfig;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;

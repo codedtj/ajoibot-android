@@ -1,4 +1,4 @@
-package com.webviewgold.myappname.advertisement;
+package tj.sit.app.advertisement;
 
 import android.app.Activity;
 import android.content.Context;

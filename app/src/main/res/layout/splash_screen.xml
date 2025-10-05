@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/colorWhite"
     android:gravity="center"
-    tools:context="com.webviewgold.myappname.SplashScreen">
+    tools:context="tj.sit.app.SplashScreen">
 
     <pl.droidsonroids.gif.GifImageView
         android:id="@+id/splash"

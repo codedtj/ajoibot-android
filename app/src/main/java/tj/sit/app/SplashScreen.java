@@ -1,4 +1,4 @@
-package com.webviewgold.myappname;
+package tj.sit.app;
 
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;

@@ -1,36 +1,13 @@
-package com.webviewgold.myappname;
+package tj.sit.app;
 
 import static android.content.Intent.CATEGORY_DEFAULT;
 import static android.content.Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS;
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static android.content.Intent.FLAG_ACTIVITY_NO_HISTORY;
 import static android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
-import static com.webviewgold.myappname.BuildConfig.ONESIGNAL_APP_ID;
-import static com.webviewgold.myappname.Config.ACTIVATE_PROGRESS_BAR;
-import static com.webviewgold.myappname.Config.ASK_FOR_AD_CONSENT;
-import static com.webviewgold.myappname.Config.AUTO_DOWNLOAD_FILES;
-import static com.webviewgold.myappname.Config.BROWSER_BLACKLIST;
-import static com.webviewgold.myappname.Config.BROWSER_WHITELIST;
-import static com.webviewgold.myappname.Config.DISABLE_DARK_MODE;
-import static com.webviewgold.myappname.Config.ENABLE_PULL_REFRESH;
-import static com.webviewgold.myappname.Config.ENABLE_SWIPE_NAVIGATE;
-import static com.webviewgold.myappname.Config.ENABLE_ZOOM;
-import static com.webviewgold.myappname.Config.EXIT_APP_DIALOG;
-import static com.webviewgold.myappname.Config.HIDE_HORIZONTAL_SCROLLBAR;
-import static com.webviewgold.myappname.Config.HIDE_NAVIGATION_BAR_IN_LANDSCAPE;
-import static com.webviewgold.myappname.Config.HIDE_VERTICAL_SCROLLBAR;
-import static com.webviewgold.myappname.Config.INCREMENT_WITH_REDIRECTS;
-import static com.webviewgold.myappname.Config.INCREMENT_WITH_TAPS;
-import static com.webviewgold.myappname.Config.MAX_TEXT_ZOOM;
-import static com.webviewgold.myappname.Config.NEVER_OPEN_IN_INAPP_TAB;
-import static com.webviewgold.myappname.Config.PREVENT_SLEEP;
-import static com.webviewgold.myappname.Config.REMAIN_SPLASH_OPTION;
-import static com.webviewgold.myappname.Config.SPECIAL_LINK_HANDLING_OPTIONS;
-import static com.webviewgold.myappname.Config.SPLASH_SCREEN_ACTIVATED;
-import static com.webviewgold.myappname.Config.downloadableExtension;
-import static com.webviewgold.myappname.Config.enableBioMetricAuth;
-import static com.webviewgold.myappname.Config.requireBackgroundLocation;
-import static com.webviewgold.myappname.WebViewApp.context;
+import static tj.sit.app.BuildConfig.ONESIGNAL_APP_ID;
+import static tj.sit.app.Config.*;
+import static tj.sit.app.WebViewApp.context;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -123,7 +100,6 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.webkit.JavascriptInterface;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -215,11 +191,11 @@ import com.revenuecat.purchases.interfaces.LogInCallback;
 import com.revenuecat.purchases.interfaces.PurchaseCallback;
 import com.revenuecat.purchases.models.StoreProduct;
 import com.revenuecat.purchases.models.StoreTransaction;
-import com.webviewgold.myappname.advertisement.GoogleMobileAdsConsentManager;
-import com.webviewgold.myappname.biometric.BiometricPromptUtils;
-import com.webviewgold.myappname.deeplinking.Deeplinking;
-import com.webviewgold.myappname.flashlight.FlashLightManager;
-import com.webviewgold.myappname.videoplayer.NativeVideoActivity;
+import tj.sit.app.advertisement.GoogleMobileAdsConsentManager;
+import tj.sit.app.biometric.BiometricPromptUtils;
+import tj.sit.app.deeplinking.Deeplinking;
+import tj.sit.app.flashlight.FlashLightManager;
+import tj.sit.app.videoplayer.NativeVideoActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -266,9 +242,6 @@ import com.zkteco.android.biometric.module.fingerprintreader.ZKFingerService;
 import com.zkteco.android.biometric.module.fingerprintreader.exception.FingerprintException;
 import com.zkteco.android.biometric.core.utils.ToolUtils;
 import java.io.ByteArrayOutputStream;
-
-
-import androidx.core.content.ContextCompat;
 
 public class MainActivity extends AppCompatActivity
         implements IPermissionObserver,
@@ -383,7 +356,7 @@ public class MainActivity extends AppCompatActivity
     private WebChromeClient.FileChooserParams fileChooserParams;
 
     //USB permissions
-    private static final String ACTION_USB_PERMISSION = "com.webviewgold.myappname.USB_PERMISSION";
+    private static final String ACTION_USB_PERMISSION = "tj.sit.app.USB_PERMISSION";
     private UsbManager usbManager;
     private BroadcastReceiver usbAttachDetachReceiver;
     private BroadcastReceiver usbPermissionReceiver = new BroadcastReceiver() {

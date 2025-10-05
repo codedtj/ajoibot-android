@@ -1,4 +1,4 @@
-package com.webviewgold.myappname.biometric;
+package tj.sit.app.biometric;
 
 import android.util.Log;
 
@@ -7,7 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 
-import com.webviewgold.myappname.R;
+import tj.sit.app.R;
 
 import java.util.concurrent.Executor;
 

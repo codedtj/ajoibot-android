@@ -1,4 +1,4 @@
-package com.webviewgold.myappname;
+package tj.sit.app;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

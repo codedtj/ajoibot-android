@@ -1,9 +1,9 @@
-package com.webviewgold.myappname.deeplinking;
+package tj.sit.app.deeplinking;
 
 import android.content.Intent;
 import android.net.Uri;
 
-import com.webviewgold.myappname.Config;
+import tj.sit.app.Config;
 
 public final class Deeplinking {
 

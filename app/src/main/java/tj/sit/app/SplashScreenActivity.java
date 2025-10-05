@@ -1,6 +1,6 @@
-package com.webviewgold.myappname;
+package tj.sit.app;
 
-import static com.webviewgold.myappname.Config.REMAIN_SPLASH_OPTION;
+import static tj.sit.app.Config.REMAIN_SPLASH_OPTION;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;

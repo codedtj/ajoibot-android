@@ -1,9 +1,8 @@
-package com.webviewgold.myappname;
+package tj.sit.app;
 
 import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -11,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 
-import com.webviewgold.myappname.biometric.BiometricPromptUtils;
+import tj.sit.app.biometric.BiometricPromptUtils;
 
 public class BaseActivity extends AppCompatActivity {
 

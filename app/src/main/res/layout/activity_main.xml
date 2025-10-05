@@ -13,14 +13,14 @@
         android:layout_height="match_parent"
         tools:background="@color/colorWhite">
 
-        <com.webviewgold.myappname.CustomWebView
+        <tj.sit.app.CustomWebView
             android:id="@+id/webView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_above="@+id/ad_layout"
             android:visibility="gone">
 
-        </com.webviewgold.myappname.CustomWebView>
+        </tj.sit.app.CustomWebView>
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

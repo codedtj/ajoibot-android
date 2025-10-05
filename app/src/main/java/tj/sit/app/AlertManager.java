@@ -1,4 +1,4 @@
-package com.webviewgold.myappname;
+package tj.sit.app;
 
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -10,9 +10,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.preference.PreferenceManager;
 
-import static com.webviewgold.myappname.Config.SHOW_FACEBOOK_DIALOG;
-import static com.webviewgold.myappname.Config.SHOW_FIRSTRUN_DIALOG;
-import static com.webviewgold.myappname.Config.SHOW_RATE_DIALOG;
+import static tj.sit.app.Config.SHOW_FACEBOOK_DIALOG;
+import static tj.sit.app.Config.SHOW_FIRSTRUN_DIALOG;
+import static tj.sit.app.Config.SHOW_RATE_DIALOG;
 
 class AlertManager {
 

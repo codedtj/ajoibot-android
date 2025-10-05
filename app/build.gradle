@@ -9,9 +9,9 @@ android {
         ONESIGNAL_APP_ID = '"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"'
     }
     compileSdk 35
-    namespace "com.webviewgold.myappname"
+    namespace "tj.sit.app"
     defaultConfig {
-        applicationId "com.webviewgold.myappname"
+        applicationId "tj.sit.app"
         minSdk 23
         targetSdk 35
         versionCode 1

@@ -1,4 +1,4 @@
-package com.webviewgold.myappname;
+package tj.sit.app;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;

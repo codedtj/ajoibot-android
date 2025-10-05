@@ -1,4 +1,4 @@
-package com.webviewgold.myappname.videoplayer;
+package tj.sit.app.videoplayer;
 
 import android.app.PictureInPictureParams;
 import android.content.Intent;
@@ -18,7 +18,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.webviewgold.myappname.R;
+import tj.sit.app.R;
 
 public class NativeVideoActivity extends AppCompatActivity {
     private VideoView videoView;
