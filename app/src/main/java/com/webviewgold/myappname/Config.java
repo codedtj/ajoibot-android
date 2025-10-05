@@ -51,7 +51,7 @@ public class Config {
     public static final boolean FALLBACK_USE_LOCAL_HTML_FOLDER_IF_OFFLINE = false;
 
     // Set to (0) to open external links in-app by default; (1) to ALWAYS open in a new tab (an additional in-app browser); (2) to ALWAYS open in another browser
-    public static final int EXTERNAL_LINK_HANDLING_OPTIONS = 0;
+    public static final int EXTERNAL_LINK_HANDLING_OPTIONS = 1;
 
     // Set to (0) to open special links in-app; (1) in a new tab (an additional in-app browser); (2) in another browser
     // NOTE: Special links have a "_blank" target or end with "#"; Overrides EXTERNAL_URL_HANDLING_OPTIONS if the link is also an external link
