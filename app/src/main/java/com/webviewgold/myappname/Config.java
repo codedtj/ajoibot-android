@@ -36,7 +36,7 @@ public class Config {
     public static final String TABLET_ORIENTATION = "auto";
 
     // Set a customized UserAgent for WebView URL requests (or leave it empty to use the default Android UserAgent)
-    public static final String USER_AGENT = "ajoibot-sit-app";
+    public static final String USER_AGENT = "ajoibot-sit-toj-app";
 
     // Set to "true" to activate Hardware Acceleration; it can improve rendering performance but can also increase memory usage and may cause compatibility issues with some content
     public static final boolean HARDWARE_ACCELERATION = false;
