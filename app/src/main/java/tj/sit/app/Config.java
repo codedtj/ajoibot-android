@@ -55,7 +55,7 @@ public class Config {
 
     // Set to (0) to open special links in-app; (1) in a new tab (an additional in-app browser); (2) in another browser
     // NOTE: Special links have a "_blank" target or end with "#"; Overrides EXTERNAL_URL_HANDLING_OPTIONS if the link is also an external link
-    public static final int SPECIAL_LINK_HANDLING_OPTIONS = 1;
+    public static final int SPECIAL_LINK_HANDLING_OPTIONS = 0;
 
     // Add domains here that should ALWAYS be opened in the external browser, regardless of what the EXTERNAL_LINK_HANDLING_OPTIONS option is set to;
     // to add another domain, insert another host like so: ["www.alwaysopeninchrome.com ", "www.google.com"]
