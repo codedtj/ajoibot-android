@@ -24,7 +24,7 @@ public class Config {
     public static final String HOST = "www.sit.tj";
 
     // Your URL including https:// or http:// prefix and including www. or any required subdomain (e.g., "https://www.example.org")
-    public static String HOME_URL = "https://sit.tj/api/bio/passwordterminal?u=kth";
+    public static String HOME_URL = "https://sit.tj";
 
     // Set to "false" to disable the progress spinner/loading spinner
     public static final boolean ACTIVATE_PROGRESS_BAR = true;
