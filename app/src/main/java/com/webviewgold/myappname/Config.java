@@ -128,7 +128,7 @@ public class Config {
     static boolean TRANSPARENT_STATUS_BAR = false;
 
     //Set to true to enable App Lock (biometric authentication) for the app
-    static boolean enableBioMetricAuth = false;
+    static boolean enableBioMetricAuth = true;
 
     //Set to "true" to prevent the device from going into sleep while the app is active
     public static final boolean PREVENT_SLEEP = false;
